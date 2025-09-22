@@ -2,13 +2,18 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "BarcodeGenerator.h"
+#include "BarcodeImageProvider.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
+
     BarcodeGenerator generator;
     engine.rootContext()->setContextProperty("barcodeGen", &generator);
+
+    // Register the custom image provider
+    engine.addImageProvider(QStringLiteral("barcode"), new BarcodeImageProvider(&generator));
 
     QObject::connect(
         &engine,

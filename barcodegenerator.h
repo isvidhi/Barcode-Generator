@@ -4,7 +4,7 @@
 #include <QString>
 #include <QStringList>
 #include <QStandardPaths>
-#include <QUrl> // Keep QUrl for local file path creation
+#include <QUrl>
 #include <QMap>
 
 class BarcodeGenerator : public QObject
@@ -15,5 +15,8 @@ public:
 
     Q_INVOKABLE QStringList getSymbologyNames();
     Q_INVOKABLE int getSymbologyCode(const QString &name);
-    Q_INVOKABLE QString generate(const QString &text, int symbology);
+    Q_INVOKABLE QImage generate(const QString &text, int symbology);
+
+signals:
+    void errorOccurred(const QString& errorMessage);
 };

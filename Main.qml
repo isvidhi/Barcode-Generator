@@ -1,3 +1,4 @@
+// In Main.qml
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -8,6 +9,16 @@ ApplicationWindow {
     height: 650
     title: "Smart Barcode Generator"
 
+    // Connect to the C++ signal to receive error messages
+    Component.onCompleted: {
+        barcodeGen.errorOccurred.connect(function(message) {
+            errorText.text = "❌ " + message
+            errorText.visible = true
+            loadingText.visible = false
+            resultSection.visible = false
+        })
+    }
+
     ScrollView {
         anchors.fill: parent
         contentWidth: availableWidth
@@ -17,15 +28,14 @@ ApplicationWindow {
             width: parent.width * 0.7
             spacing: 25
 
-                Text {
-                    Layout.fillWidth: true
-                    text: "📱 Smart Barcode Generator"
-                    color: "black"
-                    font.pixelSize: 24
-                    font.bold: true
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
+            Text {
+                Layout.fillWidth: true
+                text: "📱 Smart Barcode Generator"
+                color: "black"
+                font.pixelSize: 24
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
+            }
 
             // Input Section
             Rectangle {
@@ -116,7 +126,6 @@ ApplicationWindow {
                 }
             }
 
-            // Error/Loading Messages
             Text {
                 id: errorText
                 Layout.fillWidth: true
@@ -138,55 +147,28 @@ ApplicationWindow {
 
                 background: Rectangle {
                     radius: 12
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: parent.pressed ? "#5a67d8" : "#667eea" }
-
-                    }
-
-
+                    gradient: Gradient
                 }
 
-                contentItem: Text {
-                    text: parent.text
-                    font: parent.font
-                    color: "white"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+
 
                 onClicked: {
-                        if (inputField.text.length === 0) {
-                            errorText.text = "⚠️ Please enter some text to generate barcode"
-                            errorText.visible = true
-                            return
-                        }
-
-                        errorText.visible = false
-                        loadingText.visible = true
-
-                        let selectedName = symbologyBox.currentText
-                        let symbologyCode = barcodeGen.getSymbologyCode(selectedName)
-                        console.log("Selected:", selectedName, "Code:", symbologyCode)
-
-                        let img = barcodeGen.generate(inputField.text, symbologyCode) // img is now a QString
-                        console.log("check: " + img)
-
-                        loadingText.visible = false
-
-                        if (!img.startsWith("Error")) {
-                            barcodeImage.source = img
-                            resultSection.visible = true
-                            errorText.visible = false
-                        } else {
-                            console.log("error: " + img)
-                            resultSection.visible = false
-                            errorText.text = "❌ " + img.substring(img.indexOf(":") + 2) // Extract the message after "Error: "
-                            errorText.visible = true
-                        }
+                    if (inputField.text.length === 0) {
+                        errorText.text = "⚠️ Please enter some text to generate barcode"
+                        errorText.visible = true
+                        return
                     }
+
+                    errorText.visible = false
+                    loadingText.visible = true
+
+                    let selectedName = symbologyBox.currentText
+                    let textToEncode = inputField.text
+
+                    // Set the image source to a URL that the provider handles
+                    barcodeImage.source = "image://barcode/" + textToEncode + "/" + selectedName
+                }
             }
-
-
 
             Text {
                 id: loadingText
@@ -194,18 +176,6 @@ ApplicationWindow {
                 text: "🔄 Generating barcode..."
                 color: "#667eea"
                 font.pixelSize: 14
-                horizontalAlignment: Text.AlignHCenter
-                visible: false
-            }
-
-            // Error/Loading Messages
-            Text {
-                id: inputErrorText
-                Layout.fillWidth: true
-                text: ""
-                color: "#dc3545"
-                font.pixelSize: 14
-                wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
                 visible: false
             }
@@ -248,10 +218,24 @@ ApplicationWindow {
                             width: Math.min(parent.width - 20, 230)
                             height: Math.min(parent.height - 20, 230)
                             fillMode: Image.PreserveAspectFit
+
+                            onStatusChanged: {
+                                                if (status === Image.Ready) {
+                                                    loadingText.visible = false
+                                                    resultSection.visible = true
+                                                    errorText.visible = false
+                                                } else if (status === Image.Error) {
+                                                    loadingText.visible = false
+                                                    resultSection.visible = false
+                                                }
+                                            }
                         }
+
+
                     }
                 }
             }
         }
     }
 }
+
