@@ -18,6 +18,8 @@ qt_add_qml_module(appBarcodeGenerator
     QML_FILES
         Main.qml
         SOURCES barcodegenerator.h barcodegenerator.cpp
+        SOURCES symbologies.h symbologies.cpp
+        SOURCES barcodeimageprovider.h barcodeimageprovider.cpp
 )
 
 # --- Zint setup (direct include) ---
