@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QUrl>
 #include <QMap>
+#include <opencv2/opencv.hpp>
 
 class BarcodeGenerator : public QObject
 {

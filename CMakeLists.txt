@@ -22,16 +22,26 @@ qt_add_qml_module(appBarcodeGenerator
         SOURCES barcodeimageprovider.h barcodeimageprovider.cpp
 )
 
+set(OpenCV_DIR "C:/opencv/OpenCV-MinGW-Build-OpenCV-4.5.5-x64")
+find_package(OpenCV REQUIRED)
+message(STATUS "OpenCV library status:")
+message(STATUS "    config: ${OpenCV_DIR}")
+message(STATUS "    version: ${OpenCV_VERSION}")
+message(STATUS "    libraries: ${OpenCV_LIBS}")
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+
 # --- Zint setup (direct include) ---
 set(ZINT_ROOT "C:/zint")
 
 target_include_directories(appBarcodeGenerator PRIVATE
     ${ZINT_ROOT}/include
+    ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(appBarcodeGenerator PRIVATE
     Qt6::Quick
     ${ZINT_ROOT}/lib/zint.lib
+    ${OpenCV_LIBS}
 )
 
 # --- Install ---
@@ -41,6 +51,8 @@ set_target_properties(appBarcodeGenerator PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+
 
 include(GNUInstallDirs)
 install(TARGETS appBarcodeGenerator
