@@ -19,7 +19,7 @@ int BarcodeGenerator::getSymbologyCode(const QString &name) {
     return symbologies.value(name, 58);
 }
 
-QImage BarcodeGenerator::generate(const QString &text, int symbology) {
+QImage BarcodeGenerator::generate(const QString &text, int symbology, int rotate) {
     struct zint_symbol *symbol = ZBarcode_Create();
     if (!symbol) {
         emit errorOccurred("Failed to create ZBarcode symbol");
@@ -28,7 +28,7 @@ QImage BarcodeGenerator::generate(const QString &text, int symbology) {
 
     symbol->symbology = symbology;
     symbol->scale = 2.0;
-    symbol->show_hrt = 1;
+    symbol->show_hrt = 0;
 
     QByteArray utf8 = text.toUtf8();
     int result = ZBarcode_Encode(symbol, reinterpret_cast<const unsigned char*>(utf8.data()), utf8.size());
@@ -40,7 +40,7 @@ QImage BarcodeGenerator::generate(const QString &text, int symbology) {
         return QImage();
     }
 
-    result = ZBarcode_Buffer(symbol,0);
+    result = ZBarcode_Buffer(symbol,rotate);
     if (result != 0) {
         QString errorMsg = QString(symbol->errtxt);
         emit errorOccurred("Error: " + errorMsg);

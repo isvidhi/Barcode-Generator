@@ -18,11 +18,15 @@ QImage BarcodeImageProvider::requestImage(const QString &id, QSize *size, const 
 
     QString text = parts.at(0);
     QString symbologyName = parts.at(1);
+    int rotation = 0;
+    if (parts.size() >= 3) {
+        rotation = parts.at(2).toInt();
+    }
 
     int symbologyCode = m_generator->getSymbologyCode(symbologyName);
 
     // Call the BarcodeGenerator's function, which now returns a QImage
-    QImage barcodeImg = m_generator->generate(text, symbologyCode);
+    QImage barcodeImg = m_generator->generate(text, symbologyCode, rotation);
 
     if (size) {
         *size = barcodeImg.size();

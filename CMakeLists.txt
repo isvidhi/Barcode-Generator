@@ -22,27 +22,45 @@ qt_add_qml_module(appBarcodeGenerator
         SOURCES barcodeimageprovider.h barcodeimageprovider.cpp
 )
 
-set(OpenCV_DIR "C:/opencv/OpenCV-MinGW-Build-OpenCV-4.5.5-x64")
+if(ANDROID)
+    set(OpenCV_DIR "C:/opencv/OpenCV-android-sdk/sdk/native/jni")
+else()
+    set(OpenCV_DIR "C:/opencv/OpenCV-MinGW-Build-OpenCV-4.5.5-x64")
+endif()
 find_package(OpenCV REQUIRED)
-message(STATUS "OpenCV library status:")
-message(STATUS "    config: ${OpenCV_DIR}")
-message(STATUS "    version: ${OpenCV_VERSION}")
-message(STATUS "    libraries: ${OpenCV_LIBS}")
-message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
-# --- Zint setup (direct include) ---
-set(ZINT_ROOT "C:/zint")
+if(ANDROID)
+    set(ZINT_ROOT "C:/zint-android-install")
+else()
+    set(ZINT_ROOT "C:/zint")
+endif()
 
 target_include_directories(appBarcodeGenerator PRIVATE
     ${ZINT_ROOT}/include
     ${OpenCV_INCLUDE_DIRS}
 )
 
-target_link_libraries(appBarcodeGenerator PRIVATE
-    Qt6::Quick
-    ${ZINT_ROOT}/lib/zint.lib
-    ${OpenCV_LIBS}
-)
+if(ANDROID)
+    # Import Zint shared library
+    add_library(zint SHARED IMPORTED)
+    set_target_properties(zint PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/android/libs/${ANDROID_ABI}/libzint.so"
+    )
+
+    target_link_libraries(appBarcodeGenerator PRIVATE
+        Qt6::Quick
+        ${OpenCV_LIBS}
+        zint
+    )
+else()
+    target_link_libraries(appBarcodeGenerator PRIVATE
+        Qt6::Quick
+        ${OpenCV_LIBS}
+        ${ZINT_ROOT}/lib/zint.lib
+    )
+endif()
+
+
 
 # --- Install ---
 set_target_properties(appBarcodeGenerator PROPERTIES

@@ -16,7 +16,7 @@ public:
 
     Q_INVOKABLE QStringList getSymbologyNames();
     Q_INVOKABLE int getSymbologyCode(const QString &name);
-    Q_INVOKABLE QImage generate(const QString &text, int symbology);
+    Q_INVOKABLE QImage generate(const QString &text, int symbology, int rotate);
 
 signals:
     void errorOccurred(const QString& errorMessage);

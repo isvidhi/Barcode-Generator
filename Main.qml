@@ -1,6 +1,6 @@
 // In Main.qml
 import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick.Controls.Material
 import QtQuick.Layouts 1.15
 
 ApplicationWindow {
@@ -126,6 +126,51 @@ ApplicationWindow {
                 }
             }
 
+            // Rotation Selection
+            Rectangle {
+                Layout.fillWidth: true
+                height: 120
+                radius: 12
+                color: "white"
+                border.color: "#dee2e6"
+                border.width: 1
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 15
+
+                    Text {
+                        text: "Select Rotation:"
+                        font.pixelSize: 16
+                        font.bold: true
+                        color: "#495057"
+                    }
+
+                    ComboBox {
+                        id: rotationBox
+                        Layout.fillWidth: true
+                        model: ["0° (No Rotation)", "90° (Rotate Right)", "180° (Upside Down)", "270° (Rotate Left)"]
+                        font.pixelSize: 14
+
+                        background: Rectangle {
+                            radius: 8
+                            border.color: rotationBox.pressed ? "#667eea" : "#ced4da"
+                            border.width: 2
+                            color: "#f8f9fa"
+                        }
+
+                        contentItem: Text {
+                            text: rotationBox.currentText
+                            font: rotationBox.font
+                            color: "#495057"
+                            verticalAlignment: Text.AlignVCenter
+                            leftPadding: 12
+                        }
+                    }
+                }
+            }
+
             Text {
                 id: errorText
                 Layout.fillWidth: true
@@ -145,13 +190,6 @@ ApplicationWindow {
                 font.pixelSize: 18
                 font.bold: true
 
-                background: Rectangle {
-                    radius: 12
-                    gradient: Gradient
-                }
-
-
-
                 onClicked: {
                     if (inputField.text.length === 0) {
                         errorText.text = "⚠️ Please enter some text to generate barcode"
@@ -164,9 +202,10 @@ ApplicationWindow {
 
                     let selectedName = symbologyBox.currentText
                     let textToEncode = inputField.text
+                    let rotationAngle = rotationBox.currentIndex * 90  // 0, 90, 180, or 270
 
                     // Set the image source to a URL that the provider handles
-                    barcodeImage.source = "image://barcode/" + textToEncode + "/" + selectedName
+                    barcodeImage.source = "image://barcode/" + textToEncode + "/" + selectedName + "/" + rotationAngle
                 }
             }
 
@@ -238,4 +277,3 @@ ApplicationWindow {
         }
     }
 }
-
