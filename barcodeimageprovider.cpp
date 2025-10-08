@@ -19,14 +19,25 @@ QImage BarcodeImageProvider::requestImage(const QString &id, QSize *size, const 
     QString text = parts.at(0);
     QString symbologyName = parts.at(1);
     int rotation = 0;
+    int showHrt = 0;
+    int height = 50;
+    int width = 0;
+
     if (parts.size() >= 3) {
         rotation = parts.at(2).toInt();
     }
+    if (parts.size() >= 4) {
+        showHrt = parts.at(3).toInt();
+    }
+    if (parts.size() >= 5) {
+        height = parts.at(4).toInt();
+    }
+    if (parts.size() >= 6) {
+        width = parts.at(5).toInt();
+    }
 
     int symbologyCode = m_generator->getSymbologyCode(symbologyName);
-
-    // Call the BarcodeGenerator's function, which now returns a QImage
-    QImage barcodeImg = m_generator->generate(text, symbologyCode, rotation);
+    QImage barcodeImg = m_generator->generate(text, symbologyCode, rotation, showHrt, height, width);
 
     if (size) {
         *size = barcodeImg.size();

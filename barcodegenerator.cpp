@@ -19,7 +19,7 @@ int BarcodeGenerator::getSymbologyCode(const QString &name) {
     return symbologies.value(name, 58);
 }
 
-QImage BarcodeGenerator::generate(const QString &text, int symbology, int rotate) {
+QImage BarcodeGenerator::generate(const QString &text, int symbology, int rotate, int showHrt, int height, int width) {
     struct zint_symbol *symbol = ZBarcode_Create();
     if (!symbol) {
         emit errorOccurred("Failed to create ZBarcode symbol");
@@ -28,7 +28,15 @@ QImage BarcodeGenerator::generate(const QString &text, int symbology, int rotate
 
     symbol->symbology = symbology;
     symbol->scale = 2.0;
-    symbol->show_hrt = 0;
+    symbol->show_hrt = showHrt;
+
+    if (height > 0) {
+        symbol->height = height;
+    }
+
+    if (width > 0) {
+        symbol->width = width;
+    }
 
     QByteArray utf8 = text.toUtf8();
     int result = ZBarcode_Encode(symbol, reinterpret_cast<const unsigned char*>(utf8.data()), utf8.size());
@@ -70,26 +78,39 @@ QImage BarcodeGenerator::generate(const QString &text, int symbology, int rotate
         }
     }
 
-    // if (!img.isNull()) {
-    //     // Convert QImage to OpenCV Mat
-    //     cv::Mat matImage(
-    //         img.height(),
-    //         img.width(),
-    //         CV_8UC4, // Use 8-bit, 4-channel for ARGB32
-    //         (uchar*)img.bits(),
-    //         img.bytesPerLine()
-    //         );
-
-    //     // Convert from ARGB to BGR format which is standard for OpenCV
-    //     cv::Mat bgrImage;
-    //     cv::cvtColor(matImage, bgrImage, cv::COLOR_BGRA2BGR);
-
-    //     // Display the image in a window
-    //     cv::imshow("Barcode Debug", bgrImage);
-    //     cv::waitKey(0); // Wait for a key press to close the window
-    // }
-    // --- END OF NEW DEBUGGING CODE ---
-
     ZBarcode_Delete(symbol);
     return img;
+}
+
+bool BarcodeGenerator::saveBarcodeToPath(const QString &text, const QString &symbologyName, int rotate, int showHrt, const QString &height, const QString &width, const QString &filePath) {
+    int symbologyCode = getSymbologyCode(symbologyName);
+    int h = height.toInt();
+    int w = width.toInt();
+
+    QImage barcodeImg = generate(text, symbologyCode, rotate, showHrt, h, w);
+
+    // Clean the file path (remove file:// prefix)
+    QString cleanPath = filePath;
+    if (cleanPath.startsWith("file://")) {
+        cleanPath = cleanPath.mid(7);
+#ifdef Q_OS_WIN
+        if (cleanPath.startsWith("/")) {
+            cleanPath = cleanPath.mid(1);
+        }
+#endif
+    }
+
+    if (barcodeImg.isNull()) {
+        emit errorOccurred("Failed to generate barcode for saving");
+        return false;
+    }
+
+    // Save the image to the selected path
+    if (barcodeImg.save(cleanPath)) {
+        qDebug() << "Barcode saved to:" << cleanPath;
+        return true;
+    } else {
+        emit errorOccurred("Failed to save barcode image");
+        return false;
+    }
 }
